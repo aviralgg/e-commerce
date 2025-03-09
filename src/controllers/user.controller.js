@@ -131,4 +131,85 @@ const logoutUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "User logged out successfully"));
 });
 
-export { registerUser, loginUser, logoutUser };
+const changeCurrentPassword = asyncHandler(async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+  if (!oldPassword || !newPassword) {
+    throw new ApiError(400, "Old and new passwords are required");
+  }
+
+  const user = await User.findById(req.user?._id);
+  if (!user) {
+    throw new ApiError(404, "User not found while changing password");
+  }
+  const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
+
+  if (!isPasswordCorrect) {
+    throw new ApiError(400, "Invalid old password");
+  }
+  user.password = newPassword;
+  await user.save({ validateBeforeSave: false });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Password changed successfully"));
+});
+
+const getCurrentUser = asyncHandler(async (req, res) => {
+  return res
+    .status(200)
+    .json(new ApiResponse(200, req.user, "current user fetched successfully"));
+});
+
+const updateUserProfile = asyncHandler(async (req, res) => {
+  const { username, email, mobile } = req.body;
+  const user = await User.findById(req.user._id);
+  if (!user) {
+    throw new ApiError(404, "User not found while updating profile");
+  }
+  if (email && email !== user.email) {
+    const existingEmailUser = await User.findOne({ email });
+    if (existingEmailUser) {
+      throw new ApiError(409, "Email already exists");
+    }
+    user.email = email;
+  }
+  if (mobile && mobile !== user.mobile) {
+    const existingMobileUser = await User.findOne({ mobile });
+    if (existingMobileUser) {
+      throw new ApiError(400, "Mobile number is already taken");
+    }
+    user.mobile = mobile;
+  }
+
+  if (username) {
+    user.username = username;
+  }
+
+  await user.save({ validateBeforeSave: false });
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, "Profile updated successfully"));
+});
+
+const deleteUser = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+  if (!user) {
+    throw new ApiError(404, "User not found while deleting profile");
+  }
+  await User.findByIdAndDelete(req.user._id);
+  return res
+    .status(200)
+    .clearCookie("accessToken")
+    .clearCookie("refreshToken")
+    .json(new ApiResponse(200, {}, "User deleted successfully"));
+});
+
+export {
+  registerUser,
+  loginUser,
+  logoutUser,
+  changeCurrentPassword,
+  getCurrentUser,
+  updateUserProfile,
+  deleteUser,
+};
