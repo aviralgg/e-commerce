@@ -26,10 +26,12 @@ const productSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-    image: {
-      type: String,
-      required: true,
-    },
+    images: [
+      {
+        type: String, // Storing Cloudinary image URLs
+        required: true,
+      },
+    ],
   },
   { timestamps: true }
 );

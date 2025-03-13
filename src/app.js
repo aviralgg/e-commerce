@@ -19,5 +19,9 @@ import userRouter from "./routes/user.routes.js";
 
 app.use("/api/v2/users", userRouter);
 
+import productRouter from "./routes/product.routes.js";
+
+app.use("/api/v2/products", productRouter);
+
 
 export { app };
