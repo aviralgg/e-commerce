@@ -1,8 +1,22 @@
+
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { Product } from "../models/product.model.js";
-import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { deleteFromCloudinary, uploadOnCloudinary } from "../utils/cloudinary.js";
+
+const deleteImages = async(imageUrls)=>{
+  try {
+    for(const imageUrl of imageUrls){
+      const res = await deleteFromCloudinary(imageUrl);
+      if(!res){
+        throw new ApiError(400, "error in deletion function");
+      }
+    }
+  } catch (error) {
+    throw new ApiError(400, "Error while deleting images from cloudinary");
+  }
+}
 
 const createProduct = asyncHandler(async (req, res) => {
   const { name, description, category } = req.body;
@@ -22,11 +36,11 @@ const createProduct = asyncHandler(async (req, res) => {
   }
   // console.log(req.files);
 
-  const existedProduct = await Product.findOne({name});
-  if(existedProduct){
+  const existedProduct = await Product.findOne({ name });
+  if (existedProduct) {
     throw new ApiError(400, "Product name already exists");
   }
-  
+
   const uploadedImages = [];
   for (let i = 0; i < req.files.length; i++) {
     const imageLocalPath = req.files[i].path;
@@ -52,4 +66,94 @@ const createProduct = asyncHandler(async (req, res) => {
     .json(new ApiResponse(201, product, "Product created successfully"));
 });
 
-export { createProduct };
+const getAllProducts = asyncHandler(async (req, res) => {
+  const products = await Product.find();
+  if (!products) {
+    throw new ApiError(404, "Products not found");
+  }
+  res
+    .status(200)
+    .json(new ApiResponse(200, products, "All products fetched successfully"));
+});
+
+const getOneProduct = asyncHandler(async (req, res) => {
+  const product = await Product.findById(req.params.id);
+  if (!product) {
+    throw new ApiError(404, "Product not found");
+  }
+  res.status(200).json(new ApiResponse(200, product, "Product found"));
+});
+
+const updateProductDetails = asyncHandler(async (req, res) => {
+  const { name } = req.body;
+  if (name) {
+    const existedProduct = await Product.findOne({
+      name: name,
+      _id: { $ne: req.params.id },
+    });
+    if (existedProduct) {
+      throw new ApiError(
+        400,
+        "Product with same name but different id already exists"
+      );
+    }
+  }
+  const price =
+    req.body.price !== undefined ? Number(req.body.price) : undefined;
+  const stock =
+    req.body.stock !== undefined ? Number(req.body.stock) : undefined;
+
+  if (Object.keys(req.body).length === 0) {
+    throw new ApiError(400, "At least one field is required");
+  }
+
+  if (
+    (price !== undefined && (!Number.isFinite(price) || price <= 0)) ||
+    (stock !== undefined && (!Number.isFinite(stock) || stock <= 0))
+  ) {
+    throw new ApiError(400, "Price and Stock must be a number greater than 0");
+  }
+
+  const product = await Product.findById(req.params.id);
+  if (!product) {
+    throw new ApiError(404, "Product not found");
+  }
+  const updatedProduct = await Product.findByIdAndUpdate(
+    req.params.id,
+    { $set: req.body },
+    { new: true }
+  );
+  if (!updatedProduct) {
+    throw new ApiError(400, "Product not updated successfully");
+  }
+  res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        updatedProduct,
+        "Product details updated successfully"
+      )
+    );
+});
+
+const deleteProduct = asyncHandler(async (req, res) => {
+  const product = await Product.findById(req.params.id);
+  if(!product){
+    throw new ApiError(404, "Product not found");
+  }
+  await deleteImages(product.images);
+  await Product.findByIdAndDelete(req.params.id);
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Product deleted successfully"));
+});
+
+export {
+  createProduct,
+  getAllProducts,
+  getOneProduct,
+  updateProductDetails,
+  deleteProduct,
+};
