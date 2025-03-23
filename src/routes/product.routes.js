@@ -1,6 +1,14 @@
 import { Router } from "express";
-import { createProduct, deleteProduct, getAllProducts, getOneProduct, updateProductDetails } from "../controllers/product.controller.js";
+import {
+  addToCart,
+  createProduct,
+  deleteProduct,
+  getAllProducts,
+  getOneProduct,
+  updateProductDetails,
+} from "../controllers/product.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
+import { verifyjwt } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
@@ -9,5 +17,6 @@ router.route("/getAllProducts").get(getAllProducts);
 router.route("/getOneProduct/:id").get(getOneProduct);
 router.route("/updateProductDetails/:id").patch(updateProductDetails);
 router.route("/deleteProduct/:id").delete(deleteProduct);
+router.route("/addToCart/:name").post(verifyjwt, addToCart);
 
 export default router;

@@ -23,5 +23,9 @@ import productRouter from "./routes/product.routes.js";
 
 app.use("/api/v2/products", productRouter);
 
+import cartRouter from "./routes/cart.routes.js";
+
+app.use("/api/v2/cart", cartRouter);
+
 
 export { app };

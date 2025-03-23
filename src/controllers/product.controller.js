@@ -1,22 +1,26 @@
-
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { Product } from "../models/product.model.js";
-import { deleteFromCloudinary, uploadOnCloudinary } from "../utils/cloudinary.js";
+import { Cart } from "../models/cart.model.js";
+import { User } from "../models/user.model.js";
+import {
+  deleteFromCloudinary,
+  uploadOnCloudinary,
+} from "../utils/cloudinary.js";
 
-const deleteImages = async(imageUrls)=>{
+const deleteImages = async (imageUrls) => {
   try {
-    for(const imageUrl of imageUrls){
+    for (const imageUrl of imageUrls) {
       const res = await deleteFromCloudinary(imageUrl);
-      if(!res){
+      if (!res) {
         throw new ApiError(400, "error in deletion function");
       }
     }
   } catch (error) {
     throw new ApiError(400, "Error while deleting images from cloudinary");
   }
-}
+};
 
 const createProduct = asyncHandler(async (req, res) => {
   const { name, description, category } = req.body;
@@ -139,7 +143,7 @@ const updateProductDetails = asyncHandler(async (req, res) => {
 
 const deleteProduct = asyncHandler(async (req, res) => {
   const product = await Product.findById(req.params.id);
-  if(!product){
+  if (!product) {
     throw new ApiError(404, "Product not found");
   }
   await deleteImages(product.images);
@@ -150,10 +154,53 @@ const deleteProduct = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "Product deleted successfully"));
 });
 
+const addToCart = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+  const productName = req.params.name;
+  const prdt = await Product.findOne({ name: productName });
+  if (!prdt) {
+    throw new ApiError(404, "Product not found");
+  }
+  if (prdt.stock < 1) {
+    throw new ApiError(400, "Out of Stock");
+  }
+  let cart = await Cart.findOne({ user: userId });
+  if (!cart) {
+    cart = await Cart.create({
+      user: userId,
+      products: [{ product: prdt._id, quantity: 1 }],
+      TotalPrice: prdt.price,
+    });
+  } else {
+    // Check if the product is already in the cart
+    const productIndex = cart.products.findIndex(
+      (p) => p.product.toString() === prdt._id.toString()
+    );
+
+    if (productIndex > -1) {
+      cart.products[productIndex].quantity += 1;
+    } else {
+      cart.products.push({
+        product: prdt._id,
+        quantity: 1,
+      });
+    }
+    cart.TotalPrice += prdt.price;
+  }
+  await Product.findByIdAndUpdate(prdt._id, { $inc: { stock: -1 } });
+  await cart.save();
+  res.status(200).json(new ApiResponse(200, cart, "Product added to cart"));
+});
+
 export {
   createProduct,
   getAllProducts,
   getOneProduct,
   updateProductDetails,
   deleteProduct,
+  addToCart,
 };
