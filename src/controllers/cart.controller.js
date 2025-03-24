@@ -1,8 +1,24 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { Cart } from "../models/cart.model.js";
+import { User } from "../models/user.model.js";
 import { Product } from "../models/product.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+
+const getCart = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+  const cart = await Cart.findOne({ user: userId });
+  if (!cart) {
+    throw new ApiError(404, "Cart not found");
+  }
+  res
+    .status(200)
+    .json(new ApiResponse(200, cart, `${user.username}'s cart found`));
+});
 
 const deleteFromCart = asyncHandler(async (req, res) => {
   const userId = req.user._id;
@@ -38,4 +54,4 @@ const deleteFromCart = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, cart, "Product removed from cart"));
 });
 
-export { deleteFromCart };
+export { deleteFromCart, getCart };
