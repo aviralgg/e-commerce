@@ -12,10 +12,14 @@ import { verifyjwt } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
-router.route("/create-product").post(upload.array("images", 4), createProduct);
+router
+  .route("/create-product")
+  .post(upload.array("images", 4), createProduct);
 router.route("/getAllProducts").get(getAllProducts);
 router.route("/getOneProduct/:id").get(getOneProduct);
-router.route("/updateProductDetails/:id").patch(updateProductDetails);
+router
+  .route("/updateProductDetails/:id")
+  .patch(updateProductDetails);
 router.route("/deleteProduct/:id").delete(deleteProduct);
 router.route("/addToCart/:name").post(verifyjwt, addToCart);
 

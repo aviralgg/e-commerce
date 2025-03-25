@@ -32,12 +32,12 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-userSchema.pre("validate", function(next){
-    if(!this.email && !this.mobile){
-        return next(new Error(400, "Email or Mobile is required"));
-    }
-    next();
-})
+userSchema.pre("validate", function (next) {
+  if (!this.email && !this.mobile) {
+    return next(new Error(400, "Email or Mobile is required"));
+  }
+  next();
+});
 
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
