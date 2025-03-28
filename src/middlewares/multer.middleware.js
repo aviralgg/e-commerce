@@ -1,4 +1,6 @@
 import multer from "multer";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { ApiError } from "../utils/ApiError.js";
 // import path from "path";
 // import { ApiError } from "../utils/ApiError.js";
 
@@ -28,10 +30,19 @@ const storage = multer.diskStorage({
 //   }
 // };
 
-export const upload = multer({
+const upload = multer({
   storage,
   // fileFilter,
   // limits: {
   //   fileSize: 1024 * 1024 * 5, // 5MB
   // },
-}); 
+});
+
+const validateImageCount = asyncHandler(async (req, res, next) => {
+  if (!req.files || req.files.length < 1 || req.files.length > 4) {
+    throw new ApiError(400, "You must upload between 1 and 4 images");
+  }
+  next();
+});
+
+export { upload, validateImageCount };
