@@ -17,7 +17,7 @@ const router = Router();
 
 router
   .route("/create-product")
-  .post(upload.array("images", 4),validateImageCount,  createProduct);
+  .post(upload.array("images", 4), validateImageCount, createProduct);
 router.route("/getAllProducts").get(getAllProducts);
 router.route("/getOneProduct/:id").get(getOneProduct);
 router.route("/updateProductDetails/:id").patch(updateProductDetails);
