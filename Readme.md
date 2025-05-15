@@ -42,5 +42,5 @@ This is a backend service for an e-commerce website, providing APIs for product 
 
 4. Start the server
    ```
-   npm start
+   npm run dev
    ```
