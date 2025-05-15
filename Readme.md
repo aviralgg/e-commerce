@@ -5,6 +5,7 @@ This is a backend service for an e-commerce website, providing APIs for product 
 
 ## Features
 - User authentication and authorization
+- Uploading and deleting images from Cloudinary Server
 - Shopping cart functionality
 - User profile management
 - Admin dashboard for inventory and order management
@@ -14,6 +15,7 @@ This is a backend service for an e-commerce website, providing APIs for product 
 - Express.js
 - MongoDB
 - JWT for authentication
+- Multer for handling image uploads
 
 ## Installation
 
