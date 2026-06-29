@@ -50,6 +50,20 @@ pipeline {
             }
         }
 
+        stage('Deploy') {
+            steps {
+                sh '''
+                docker stop ecommerce || true
+                docker rm ecommerce || true
+                docker run -d \
+                --name ecommerce \
+                --env-file .env \
+                -p 8000:8000 \
+                e-commerce
+                '''
+            }
+        }
+
     }
 
 }
