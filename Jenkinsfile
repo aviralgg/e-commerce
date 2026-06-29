@@ -16,6 +16,15 @@ pipeline {
             }
         }
 
+        stage('Check Env') {
+            steps {
+                sh '''
+                pwd
+                ls -la
+                '''
+            }
+        }
+
         stage('Run Tests') {
             steps {
                 sh 'npm start'
