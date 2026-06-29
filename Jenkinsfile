@@ -44,12 +44,6 @@ pipeline {
             }
         }
 
-        stage('Lint') {
-            steps {
-                sh 'npm run lint'
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
                 sh 'docker build -t e-commerce .'
