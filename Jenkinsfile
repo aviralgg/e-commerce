@@ -2,6 +2,20 @@ pipeline {
 
     agent any
 
+    environment {
+        PORT = "8000"
+        CORS_ORIGIN = "*"
+        ACCESS_TOKEN_EXPIRY = "1d"
+        REFRESH_TOKEN_EXPIRY = "10d"
+
+        MONGODB_URI = credentials('MONGODB_URI')
+        ACCESS_TOKEN_SECRET = credentials('ACCESS_TOKEN_SECRET')
+        REFRESH_TOKEN_SECRET = credentials('REFRESH_TOKEN_SECRET')
+        CLOUDINARY_CLOUD_NAME = credentials('CLOUDINARY_CLOUD_NAME')
+        CLOUDINARY_API_KEY = credentials('CLOUDINARY_API_KEY')
+        CLOUDINARY_API_SECRET = credentials('CLOUDINARY_API_SECRET')
+    }
+
     stages {
 
         stage('Checkout') {
@@ -27,20 +41,7 @@ pipeline {
 
         stage('Run Tests') {
             steps {
-                withCredentials([
-                    string(credentialsId: 'PORT', variable: 'PORT'),
-                    string(credentialsId: 'MONGODB_URI', variable: 'MONGODB_URI'),
-                    string(credentialsId: 'CORS_ORIGIN', variable: 'CORS_ORIGIN'),
-                    string(credentialsId: 'ACCESS_TOKEN_SECRET', variable: 'ACCESS_TOKEN_SECRET'),
-                    string(credentialsId: 'ACCESS_TOKEN_EXPIRY', variable: 'ACCESS_TOKEN_EXPIRY'),
-                    string(credentialsId: 'REFRESH_TOKEN_SECRET', variable: 'REFRESH_TOKEN_SECRET'),
-                    string(credentialsId: 'REFRESH_TOKEN_EXPIRY', variable: 'REFRESH_TOKEN_EXPIRY'),
-                    string(credentialsId: 'CLOUDINARY_CLOUD_NAME', variable: 'CLOUDINARY_CLOUD_NAME'),
-                    string(credentialsId: 'CLOUDINARY_API_KEY', variable: 'CLOUDINARY_API_KEY'),
-                    string(credentialsId: 'CLOUDINARY_API_SECRET', variable: 'CLOUDINARY_API_SECRET')
-                ]) {
-                    sh 'npm test'
-                }
+                sh 'npm test'
             }
         }
 
@@ -57,7 +58,6 @@ pipeline {
                 docker rm ecommerce || true
                 docker run -d \
                 --name ecommerce \
-                --env-file .env \
                 -p 8000:8000 \
                 e-commerce:latest
                 '''
