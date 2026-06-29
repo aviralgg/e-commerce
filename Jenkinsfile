@@ -39,7 +39,7 @@ pipeline {
                     string(credentialsId: 'CLOUDINARY_API_KEY', variable: 'CLOUDINARY_API_KEY'),
                     string(credentialsId: 'CLOUDINARY_API_SECRET', variable: 'CLOUDINARY_API_SECRET')
                 ]) {
-                    sh 'npm start'
+                    sh 'npm test'
                 }
             }
         }
